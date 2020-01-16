@@ -32,10 +32,12 @@ module.exports = {
       inject: 'body',
       filename: 'index.html',
     }),
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.OccurenceOrderPlugin(),
+    // NOTE @terminal: removed since dedupe plugin is deprecated
+    // https://webpack.js.org/migrate/3/#dedupeplugin-has-been-removed
+    // new webpack.optimize.DedupePlugin(),
+    new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.AggressiveMergingPlugin(),
-    new webpack.NoErrorsPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(), // updated for webpack 4
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
@@ -44,29 +46,47 @@ module.exports = {
       deleteOriginalAssets: true,
     }),
   ],
-  eslint: {
-    configFile: '.eslintrc',
-    failOnWarning: false,
-    failOnError: false,
-  },
+  // NOTE @terminal: moving next blog to inside the loader 
+  // https://github.com/webpack-contrib/eslint-loader
+  // eslint: {
+  //   configFile: '.eslintrc',
+  //   failOnWarning: false,
+  //   failOnError: false,
+  // },
   module: {
-    preLoaders: [
+    // NOTE @terminal: moving preloaders to loaders with 'pre' property
+    // https://github.com/webpack-contrib/eslint-loader/issues/113
+    // preLoaders: [
+    //   {
+    //     test: /\.js$/,
+    //     exclude: /node_modules/,
+    //     loader: 'eslint',
+    //   },
+    // ],
+    rules: [
       {
+        enforce:'pre',
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'eslint',
+        loader: 'eslint-loader',
+        options: {
+          configFile: '.eslintrc',
+          failOnWarning: false,
+          failOnError: false,
+        }
       },
-    ],
-    loaders: [
       {
         test: /\.js?$/,
         exclude: /node_modules/,
-        loader: 'babel',
+        loader: 'babel-loader',
       },
-      {
-        test: /\.json?$/,
-        loader: 'json-loader',
-      },
+      // NOTE @terminal: commenting this out because json files works by default in webpack 4
+      // https://webpack.js.org/loaders/json-loader/
+      // {
+      //   test: /\.json?$/,
+      //   exclude: /node_modules/,
+      //   loader: 'json-loader',
+      // },
       {
         test: /\.scss$/,
         loader: 'style!css?modules&localIdentName=[local]!sass',
@@ -80,9 +100,9 @@ module.exports = {
         loader: 'file',
       },
       {
-        test: /\.css$/,
+        test: /\.css$/, 
         loaders: ['style-loader', 'css-loader'],
-      },
+      },  
     ],
   },
   node: {
